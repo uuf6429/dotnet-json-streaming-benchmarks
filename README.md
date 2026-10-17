@@ -1,6 +1,7 @@
 # ⚡ dotnet-json-streaming-benchmarks
 
-A C# / .NET proof-of-concept and performance comparison showcase demonstrating **Eager vs. Lazy (Streaming)** ingestion for **JSON Arrays** and **JSON Lines (`.jsonl`)**.
+A C# / .NET proof-of-concept and performance comparison showcase demonstrating **Eager vs. Lazy (Streaming)** ingestion
+for **JSON Arrays** (`.json`) and **JSON Lines (`.jsonl`)**.
 
 [![CI](https://github.com/uuf6429/dotnet-json-streaming-benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/uuf6429/dotnet-json-streaming-benchmarks/actions/workflows/ci.yml)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
@@ -11,19 +12,22 @@ A C# / .NET proof-of-concept and performance comparison showcase demonstrating *
 
 ## 🎯 Overview
 
-When handling large datasets in JSON, traditional eager deserializers buffer and parse the entire payload into memory upfront before returning any elements. 
+When handling large datasets in JSON, traditional eager deserializers buffer and parse the entire payload into memory
+upfront before returning any elements.
 
-**dotnet-json-streaming-benchmarks** showcases how lazy, forward-only streaming (using `Utf8JsonReader` and `IAsyncEnumerable`/`IEnumerable<T>`) eliminates large memory allocations and dramatically reduces Time-to-First-Item latency.
+**dotnet-json-streaming-benchmarks** showcases how lazy, forward-only streaming (using `Utf8JsonReader` and
+`IAsyncEnumerable`/`IEnumerable<T>`) eliminates large memory allocations and dramatically reduces Time-to-First-Item
+latency.
 
 ### Available Loaders
 
-| Loader | Format | Ingestion Strategy | Memory Overhead |
-|---|---|---|---|
-| `EagerJsonLoader` | JSON Array (`.json`) | Full document buffered into `List<T>` | High ($O(N)$) |
-| `LazyJsonLoader` | JSON Array (`.json`) | Streaming via `Utf8JsonReader` + `yield return` | Near-zero ($O(1)$) |
-| `EagerJsonLinesLoader` | JSON Lines (`.jsonl`) | Full file read via `File.ReadAllLines` | High ($O(N)$) |
-| `LazyJsonLinesLoader` | JSON Lines (`.jsonl`) | Streaming via `StreamReader.ReadLine` + `yield return` | Near-zero ($O(1)$) |
-| `BatchingLoader` | Any `IJsonLoader` | Splits streams into discrete chunks on-the-fly | Minimal ($O(\text{BatchSize})$) |
+| Loader                 | Format                | Ingestion Strategy                                     | Memory Overhead                   |
+|------------------------|-----------------------|--------------------------------------------------------|-----------------------------------|
+| `EagerJsonLoader`      | JSON Array (`.json`)  | Full document buffered into `List<T>`                  | High ($`O(N)`$)                   |
+| `LazyJsonLoader`       | JSON Array (`.json`)  | Streaming via `Utf8JsonReader` + `yield return`        | Near-zero ($`O(1)`$)              |
+| `EagerJsonLinesLoader` | JSON Lines (`.jsonl`) | Full file read via `File.ReadAllLines`                 | High ($`O(N)`$)                   |
+| `LazyJsonLinesLoader`  | JSON Lines (`.jsonl`) | Streaming via `StreamReader.ReadLine` + `yield return` | Near-zero ($`O(1)`$)              |
+| `BatchingLoader`       | Any `IJsonLoader`     | Splits streams into discrete chunks on-the-fly         | Minimal ($`O(\text{BatchSize})`$) |
 
 ---
 
@@ -71,14 +75,24 @@ Running `dotnet test` against a 30,000-item dataset demonstrates the performance
 A key finding in this PoC evolution is the difference between standard LINQ pagination and native reader-level skipping:
 
 ### What happens when calling `IEnumerable<T>.Skip(count)`?
-`IEnumerable.Skip()` is a LINQ extension method that advances the source enumerator by calling `MoveNext()` `count` times.
-- Because `IEnumerator<T>.Current` is typed as `T`, every call to `MoveNext()` on a standard lazy loader triggers **full JSON parsing and object deserialization** for that element.
-- Even though lazy streaming keeps peak memory bounded ($O(1)$ working set), skipping 10,000 items still creates and discards 10,000 C# objects, generating significant GC heap pressure and CPU waste.
+
+`IEnumerable.Skip()` is a LINQ extension method that advances the source enumerator by calling `MoveNext()` `count`
+times.
+
+- Because `IEnumerator<T>.Current` is typed as `T`, every call to `MoveNext()` on a standard lazy loader triggers **full
+  JSON parsing and object deserialization** for that element.
+- Even though lazy streaming keeps peak memory bounded ($`O (1)`$ working set), skipping 10,000 items still creates and
+  discards 10,000 C# objects, generating significant GC heap pressure and CPU waste.
 
 ### The Efficient Way: Native Deserialization Bypass
-Our native pagination API (`IJsonLoader.Load(filePath, skip, take)`) bypasses deserialization entirely during the skip phase:
-- **`LazyJsonLoader` (JSON Array)**: Uses low-level `Utf8JsonReader.TrySkip()` within the byte buffer to skip JSON objects without building `JsonDocument` or allocating C# record instances.
-- **`LazyJsonLinesLoader` (JSON Lines)**: Advances through raw text lines via `StreamReader.ReadLine()` without invoking `JsonSerializer.Deserialize<T>()`.
+
+Our native pagination API (`IJsonLoader.Load(filePath, skip, take)`) bypasses deserialization entirely during the skip
+phase:
+
+- **`LazyJsonLoader` (JSON Array)**: Uses low-level `Utf8JsonReader.TrySkip()` within the byte buffer to skip JSON
+  objects without building `JsonDocument` or allocating C# record instances.
+- **`LazyJsonLinesLoader` (JSON Lines)**: Advances through raw text lines via `StreamReader.ReadLine()` without invoking
+  `JsonSerializer.Deserialize<T>()`.
 - **`BatchingLoader`**: Directly delegates `skipBatches * batchSize` to the loader's native zero-deserialization skip.
 
 ---
@@ -162,7 +176,8 @@ dotnet test --logger "console;verbosity=detailed"
 
 ## 💖 Sponsoring
 
-If you find this project useful, consider [sponsoring on GitHub](https://github.com/sponsors/uuf6429) or via [PayPal](https://paypal.me/uuf6429).
+If you find this project useful, consider [sponsoring on GitHub](https://github.com/sponsors/uuf6429) or
+via [PayPal](https://paypal.me/uuf6429).
 
 ---
 
