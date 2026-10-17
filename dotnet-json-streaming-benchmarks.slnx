@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="JsonStreamingBenchmarks.Tests/JsonStreamingBenchmarks.Tests.csproj" />
+  <Project Path="JsonStreamingBenchmarks/JsonStreamingBenchmarks.csproj" />
+</Solution>

@@ -1,0 +1,23 @@
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider cache & temp
+.vs/
+.idea/
+.junie/
+*.dotCover
+
+# Test results / Coverage
+TestResults/
+[Tt]est[Rr]esult*/
