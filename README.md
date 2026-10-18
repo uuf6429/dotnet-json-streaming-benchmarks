@@ -68,6 +68,20 @@ Running `dotnet test` against a 30,000-item dataset demonstrates the performance
   BatchingLoader Native Skip:    20 ms,   169 KB allocated  (~25x less memory)
 ```
 
+### 4. Full Dataset Throughput (Processing all 30,000 items, Batch size: 1,000)
+
+```text
+[Full Dataset Throughput (30,000 items, Batch Size: 1,000)]
+  JSON Array:
+    Eager Loader:         164 ms |    182,266 items/sec | 26,996 KB allocated
+    Lazy Loader:          242 ms |    123,896 items/sec | 11,847 KB allocated
+    Batched Lazy Loader:  216 ms |    138,355 items/sec | 12,091 KB allocated
+  JSON Lines:
+    Eager Loader:          96 ms |    309,632 items/sec | 18,202 KB allocated
+    Lazy Loader:           85 ms |    349,617 items/sec | 17,003 KB allocated
+    Batched Lazy Loader:   76 ms |    394,226 items/sec | 17,247 KB allocated  (highest throughput)
+```
+
 ---
 
 ## 💡 Architectural Deep-Dive: LINQ `.Skip()` vs. Native Skipping

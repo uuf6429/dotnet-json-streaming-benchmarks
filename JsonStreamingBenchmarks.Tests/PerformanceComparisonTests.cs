@@ -3,8 +3,6 @@ using System.Text.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-using JsonStreamingBenchmarks;
-
 namespace JsonStreamingBenchmarks.Tests;
 
 public class PerformanceComparisonTests : IDisposable
@@ -82,7 +80,8 @@ public class PerformanceComparisonTests : IDisposable
         long eagerAllocated = GC.GetAllocatedBytesForCurrentThread() - eagerAllocStart;
 
         _output.WriteLine($"[JSON Array Partial Read ({takeCount} / {LargeDatasetSize} items)]");
-        _output.WriteLine($"  Eager Loader:  {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  Eager Loader:  {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
         _output.WriteLine($"  Lazy Loader:   {lazySw.ElapsedMilliseconds} ms, {lazyAllocated / 1024:N0} KB allocated");
 
         Assert.Equal(takeCount, lazyResults.Count);
@@ -121,7 +120,8 @@ public class PerformanceComparisonTests : IDisposable
         long eagerAllocated = GC.GetAllocatedBytesForCurrentThread() - eagerAllocStart;
 
         _output.WriteLine($"[JSON Lines Partial Read ({takeCount} / {LargeDatasetSize} items)]");
-        _output.WriteLine($"  Eager Loader:  {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  Eager Loader:  {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
         _output.WriteLine($"  Lazy Loader:   {lazySw.ElapsedMilliseconds} ms, {lazyAllocated / 1024:N0} KB allocated");
 
         Assert.Equal(takeCount, lazyResults.Count);
@@ -143,14 +143,16 @@ public class PerformanceComparisonTests : IDisposable
 
         // Time to first batch with Lazy loader
         var lazySw = Stopwatch.StartNew();
-        using var lazyEnumerator = batchingLoader.Load<TestRecord>(lazyLoader, _jsonArrayFilePath, batchSize: 50).GetEnumerator();
+        using var lazyEnumerator = batchingLoader.Load<TestRecord>(lazyLoader, _jsonArrayFilePath, batchSize: 50)
+            .GetEnumerator();
         Assert.True(lazyEnumerator.MoveNext());
         lazySw.Stop();
         var lazyFirstBatch = lazyEnumerator.Current;
 
         // Time to first batch with Eager loader
         var eagerSw = Stopwatch.StartNew();
-        using var eagerEnumerator = batchingLoader.Load<TestRecord>(eagerLoader, _jsonArrayFilePath, batchSize: 50).GetEnumerator();
+        using var eagerEnumerator = batchingLoader.Load<TestRecord>(eagerLoader, _jsonArrayFilePath, batchSize: 50)
+            .GetEnumerator();
         Assert.True(eagerEnumerator.MoveNext());
         eagerSw.Stop();
         var eagerFirstBatch = eagerEnumerator.Current;
@@ -199,10 +201,14 @@ public class PerformanceComparisonTests : IDisposable
         eagerSw.Stop();
         long eagerAllocated = GC.GetAllocatedBytesForCurrentThread() - eagerAllocStart;
 
-        _output.WriteLine($"[JSON Array Pagination (Skip {skipCount:N0}, Take {takeCount} of {LargeDatasetSize:N0} items)]");
-        _output.WriteLine($"  Eager Loader (Full File Parse): {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
-        _output.WriteLine($"  Lazy Loader + LINQ .Skip():     {linqSw.ElapsedMilliseconds} ms, {linqAllocated / 1024:N0} KB allocated");
-        _output.WriteLine($"  Lazy Loader Native .Load():     {nativeSw.ElapsedMilliseconds} ms, {nativeAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"[JSON Array Pagination (Skip {skipCount:N0}, Take {takeCount} of {LargeDatasetSize:N0} items)]");
+        _output.WriteLine(
+            $"  Eager Loader (Full File Parse): {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  Lazy Loader + LINQ .Skip():     {linqSw.ElapsedMilliseconds} ms, {linqAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  Lazy Loader Native .Load():     {nativeSw.ElapsedMilliseconds} ms, {nativeAllocated / 1024:N0} KB allocated");
 
         Assert.Equal(takeCount, nativeResults.Count);
         Assert.Equal(takeCount, linqResults.Count);
@@ -249,10 +255,14 @@ public class PerformanceComparisonTests : IDisposable
         eagerSw.Stop();
         long eagerAllocated = GC.GetAllocatedBytesForCurrentThread() - eagerAllocStart;
 
-        _output.WriteLine($"[JSON Lines Pagination (Skip {skipCount:N0}, Take {takeCount} of {LargeDatasetSize:N0} items)]");
-        _output.WriteLine($"  Eager Loader (Full File Parse): {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
-        _output.WriteLine($"  Lazy Loader + LINQ .Skip():     {linqSw.ElapsedMilliseconds} ms, {linqAllocated / 1024:N0} KB allocated");
-        _output.WriteLine($"  Lazy Loader Native .Load():     {nativeSw.ElapsedMilliseconds} ms, {nativeAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"[JSON Lines Pagination (Skip {skipCount:N0}, Take {takeCount} of {LargeDatasetSize:N0} items)]");
+        _output.WriteLine(
+            $"  Eager Loader (Full File Parse): {eagerSw.ElapsedMilliseconds} ms, {eagerAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  Lazy Loader + LINQ .Skip():     {linqSw.ElapsedMilliseconds} ms, {linqAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  Lazy Loader Native .Load():     {nativeSw.ElapsedMilliseconds} ms, {nativeAllocated / 1024:N0} KB allocated");
 
         Assert.Equal(takeCount, nativeResults.Count);
         Assert.Equal(takeCount, linqResults.Count);
@@ -269,7 +279,7 @@ public class PerformanceComparisonTests : IDisposable
     {
         const int batchSize = 100;
         const int skipBatches = 100; // Skips 10,000 items
-        const int takeBatches = 1;   // Takes 100 items
+        const int takeBatches = 1; // Takes 100 items
         var batchingLoader = new BatchingLoader();
         var lazyLoader = new LazyJsonLoader();
 
@@ -289,9 +299,9 @@ public class PerformanceComparisonTests : IDisposable
         var linqSw = Stopwatch.StartNew();
         long linqAllocStart = GC.GetAllocatedBytesForCurrentThread();
         var linqBatches = batchingLoader.Load<TestRecord>(
-            lazyLoader,
-            _jsonArrayFilePath,
-            batchSize: batchSize)
+                lazyLoader,
+                _jsonArrayFilePath,
+                batchSize: batchSize)
             .Skip(skipBatches)
             .Take(takeBatches)
             .ToList();
@@ -299,8 +309,10 @@ public class PerformanceComparisonTests : IDisposable
         long linqAllocated = GC.GetAllocatedBytesForCurrentThread() - linqAllocStart;
 
         _output.WriteLine($"[Batch Pagination (Skip {skipBatches} batches of {batchSize}, Take {takeBatches} batch)]");
-        _output.WriteLine($"  BatchingLoader + LINQ .Skip(): {linqSw.ElapsedMilliseconds} ms, {linqAllocated / 1024:N0} KB allocated");
-        _output.WriteLine($"  BatchingLoader Native Skip:    {nativeSw.ElapsedMilliseconds} ms, {nativeAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  BatchingLoader + LINQ .Skip(): {linqSw.ElapsedMilliseconds} ms, {linqAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"  BatchingLoader Native Skip:    {nativeSw.ElapsedMilliseconds} ms, {nativeAllocated / 1024:N0} KB allocated");
 
         Assert.Single(nativeBatches);
         Assert.Single(linqBatches);
@@ -309,5 +321,132 @@ public class PerformanceComparisonTests : IDisposable
 
         Assert.True(nativeAllocated < linqAllocated,
             $"Native batch skip ({nativeAllocated} bytes) was expected to allocate less memory than LINQ batch skip ({linqAllocated} bytes).");
+    }
+
+    [Fact]
+    public void Throughput_FullDataset_MeasuresItemsPerSecondAcrossLoaders()
+    {
+        const int batchSize = 1_000;
+        var eagerJsonLoader = new EagerJsonLoader();
+        var lazyJsonLoader = new LazyJsonLoader();
+        var eagerJsonLinesLoader = new EagerJsonLinesLoader();
+        var lazyJsonLinesLoader = new LazyJsonLinesLoader();
+        var batchingLoader = new BatchingLoader();
+
+        // Warm up / JIT
+        _ = eagerJsonLoader.Load<TestRecord>(_jsonArrayFilePath).Take(10).ToList();
+        _ = lazyJsonLoader.Load<TestRecord>(_jsonArrayFilePath).Take(10).ToList();
+        _ = eagerJsonLinesLoader.Load<TestRecord>(_jsonLinesFilePath).Take(10).ToList();
+        _ = lazyJsonLinesLoader.Load<TestRecord>(_jsonLinesFilePath).Take(10).ToList();
+        _ = batchingLoader.Load<TestRecord>(lazyJsonLoader, _jsonArrayFilePath, batchSize: 10).Take(1).ToList();
+
+        // 1. JSON Array - Eager Loader
+        var eagerArraySw = Stopwatch.StartNew();
+        long eagerArrayAllocStart = GC.GetAllocatedBytesForCurrentThread();
+        int eagerArrayCount = 0;
+        foreach (var unused in eagerJsonLoader.Load<TestRecord>(_jsonArrayFilePath))
+        {
+            eagerArrayCount++;
+        }
+
+        eagerArraySw.Stop();
+        long eagerArrayAllocated = GC.GetAllocatedBytesForCurrentThread() - eagerArrayAllocStart;
+        double eagerArrayThroughput = eagerArrayCount / eagerArraySw.Elapsed.TotalSeconds;
+
+        // 2. JSON Array - Lazy Loader (Item-by-item streaming)
+        var lazyArraySw = Stopwatch.StartNew();
+        long lazyArrayAllocStart = GC.GetAllocatedBytesForCurrentThread();
+        int lazyArrayCount = 0;
+        foreach (var unused in lazyJsonLoader.Load<TestRecord>(_jsonArrayFilePath))
+        {
+            lazyArrayCount++;
+        }
+
+        lazyArraySw.Stop();
+        long lazyArrayAllocated = GC.GetAllocatedBytesForCurrentThread() - lazyArrayAllocStart;
+        double lazyArrayThroughput = lazyArrayCount / lazyArraySw.Elapsed.TotalSeconds;
+
+        // 3. JSON Array - Batched Lazy Loader (Batch size: 1,000)
+        var batchedArraySw = Stopwatch.StartNew();
+        long batchedArrayAllocStart = GC.GetAllocatedBytesForCurrentThread();
+        int batchedArrayCount = 0;
+        foreach (var batch in batchingLoader.Load<TestRecord>(lazyJsonLoader, _jsonArrayFilePath, batchSize: batchSize))
+        {
+            batchedArrayCount += batch.Count;
+        }
+
+        batchedArraySw.Stop();
+        long batchedArrayAllocated = GC.GetAllocatedBytesForCurrentThread() - batchedArrayAllocStart;
+        double batchedArrayThroughput = batchedArrayCount / batchedArraySw.Elapsed.TotalSeconds;
+
+        // 4. JSON Lines - Eager Loader
+        var eagerLinesSw = Stopwatch.StartNew();
+        long eagerLinesAllocStart = GC.GetAllocatedBytesForCurrentThread();
+        int eagerLinesCount = 0;
+        foreach (var unused in eagerJsonLinesLoader.Load<TestRecord>(_jsonLinesFilePath))
+        {
+            eagerLinesCount++;
+        }
+
+        eagerLinesSw.Stop();
+        long eagerLinesAllocated = GC.GetAllocatedBytesForCurrentThread() - eagerLinesAllocStart;
+        double eagerLinesThroughput = eagerLinesCount / eagerLinesSw.Elapsed.TotalSeconds;
+
+        // 5. JSON Lines - Lazy Loader (Line-by-line streaming)
+        var lazyLinesSw = Stopwatch.StartNew();
+        long lazyLinesAllocStart = GC.GetAllocatedBytesForCurrentThread();
+        int lazyLinesCount = 0;
+        foreach (var unused in lazyJsonLinesLoader.Load<TestRecord>(_jsonLinesFilePath))
+        {
+            lazyLinesCount++;
+        }
+
+        lazyLinesSw.Stop();
+        long lazyLinesAllocated = GC.GetAllocatedBytesForCurrentThread() - lazyLinesAllocStart;
+        double lazyLinesThroughput = lazyLinesCount / lazyLinesSw.Elapsed.TotalSeconds;
+
+        // 6. JSON Lines - Batched Lazy Loader (Batch size: 1,000)
+        var batchedLinesSw = Stopwatch.StartNew();
+        long batchedLinesAllocStart = GC.GetAllocatedBytesForCurrentThread();
+        int batchedLinesCount = 0;
+        foreach (var batch in batchingLoader.Load<TestRecord>(lazyJsonLinesLoader, _jsonLinesFilePath,
+                     batchSize: batchSize))
+        {
+            batchedLinesCount += batch.Count;
+        }
+
+        batchedLinesSw.Stop();
+        long batchedLinesAllocated = GC.GetAllocatedBytesForCurrentThread() - batchedLinesAllocStart;
+        double batchedLinesThroughput = batchedLinesCount / batchedLinesSw.Elapsed.TotalSeconds;
+
+        _output.WriteLine($"[Full Dataset Throughput ({LargeDatasetSize:N0} items, Batch Size: {batchSize:N0})]");
+        _output.WriteLine("  JSON Array:");
+        _output.WriteLine(
+            $"    Eager Loader:        {eagerArraySw.ElapsedMilliseconds,4} ms | {eagerArrayThroughput,10:N0} items/sec | {eagerArrayAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"    Lazy Loader:         {lazyArraySw.ElapsedMilliseconds,4} ms | {lazyArrayThroughput,10:N0} items/sec | {lazyArrayAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"    Batched Lazy Loader: {batchedArraySw.ElapsedMilliseconds,4} ms | {batchedArrayThroughput,10:N0} items/sec | {batchedArrayAllocated / 1024:N0} KB allocated");
+        _output.WriteLine("  JSON Lines:");
+        _output.WriteLine(
+            $"    Eager Loader:        {eagerLinesSw.ElapsedMilliseconds,4} ms | {eagerLinesThroughput,10:N0} items/sec | {eagerLinesAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"    Lazy Loader:         {lazyLinesSw.ElapsedMilliseconds,4} ms | {lazyLinesThroughput,10:N0} items/sec | {lazyLinesAllocated / 1024:N0} KB allocated");
+        _output.WriteLine(
+            $"    Batched Lazy Loader: {batchedLinesSw.ElapsedMilliseconds,4} ms | {batchedLinesThroughput,10:N0} items/sec | {batchedLinesAllocated / 1024:N0} KB allocated");
+
+        Assert.Equal(LargeDatasetSize, eagerArrayCount);
+        Assert.Equal(LargeDatasetSize, lazyArrayCount);
+        Assert.Equal(LargeDatasetSize, batchedArrayCount);
+        Assert.Equal(LargeDatasetSize, eagerLinesCount);
+        Assert.Equal(LargeDatasetSize, lazyLinesCount);
+        Assert.Equal(LargeDatasetSize, batchedLinesCount);
+
+        Assert.True(eagerArrayThroughput > 0);
+        Assert.True(lazyArrayThroughput > 0);
+        Assert.True(batchedArrayThroughput > 0);
+        Assert.True(eagerLinesThroughput > 0);
+        Assert.True(lazyLinesThroughput > 0);
+        Assert.True(batchedLinesThroughput > 0);
     }
 }
