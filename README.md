@@ -109,6 +109,21 @@ phase:
   `JsonSerializer.Deserialize<T>()`.
 - **`BatchingLoader`**: Directly delegates `skipBatches * batchSize` to the loader's native zero-deserialization skip.
 
+### Initial Offset Skipping vs. Arbitrary Mid-Stream Skipping
+
+The native `skip` parameter in this repository focuses on **initial offset skipping** (e.g., resuming data migrations,
+partitioned parallel workers, or page jumping).
+
+- **Forward-Only Stream Mechanics**: JSON arrays and JSON Lines streams are fundamentally forward-only. Even if
+  mid-stream seeking were added to the iterator, advancing the stream still requires sequential scanning of underlying
+  bytes/tokens without random-access index lookups.
+- **Targeted Utility**: Initial offset skipping resolves the primary real-world performance bottleneck by bypassing
+  large volumes of upfront deserialization. Once streaming is actively underway, standard LINQ filtering (`.Where()`) or
+  chunking handles downstream processing with minimal overhead.
+- **When Random Access is Required**: For workloads demanding frequent non-sequential seeking or arbitrary random access
+  across massive datasets, indexed or columnar storage formats (such as Parquet, DuckDB/SQLite, or pre-indexed JSONL
+  byte offsets) are recommended over sequential JSON streams.
+
 ---
 
 ## 🚀 Quickstart
